@@ -44,6 +44,7 @@ private:
     int width;
     int height;
     int rowSize;
+    int newRowSize;
 
     // Применение гауссова фильтра к изображению
     void ApplyGaussianFilter(std::vector<uint8_t>& outputBuffer, const std::vector<uint8_t>& inputBuffer, int width, int height);
@@ -66,7 +67,7 @@ bool ImageProcessor::LoadImage()
 {
     std::ifstream is("Picture.bmp", std::ifstream::binary);
 
-    if (!is)
+    if (!is.is_open())
     {
         std::cerr << "Error opening the file." << std::endl;
         return 1;
@@ -97,7 +98,7 @@ bool ImageProcessor::LoadImage()
     width = header.width;
     height = header.height;
 
-    int rowSize = ((width * header.bitsPerPixel + 31) / 32) * 4; // Рассчет размера строки с учетом паддинга
+    rowSize = ((width * header.bitsPerPixel + 31) / 32) * 4; // Рассчет размера строки с учетом паддинга
     int padding = rowSize - ((width * header.bitsPerPixel) / 8);  // Рассчет количества паддинга
     int bufferSize = rowSize * height; // Полный размер буфера
 
@@ -155,6 +156,7 @@ bool ImageProcessor::Rotate2()
 {
     int newWidth = height;
     int newHeight = width;
+    newRowSize = ((newWidth * header.bitsPerPixel + 31) / 32) * 4;
     std::vector<uint8_t> rotatedBuffer(buffer.size());
 
     for (int y = 0; y < newHeight; ++y)
@@ -173,7 +175,6 @@ bool ImageProcessor::Rotate2()
     width = newWidth;
     height = newHeight;
 
-    // Обновление заголовка BMP
     header.width = width;
     header.height = height;
     header.fileSize = sizeof(BMPHeader) + buffer.size();
@@ -236,7 +237,7 @@ bool ImageProcessor::SaveImage(const std::string& filename)
 {
     std::ofstream os(filename, std::ofstream::binary);
 
-    if (!os)
+    if (!os.is_open())
     {
         std::cerr << "Error creating a file for saving." << std::endl;
         return false;
@@ -244,20 +245,20 @@ bool ImageProcessor::SaveImage(const std::string& filename)
 
     header.width = width;
     header.height = height;
-    header.fileSize = sizeof(BMPHeader) + buffer.size();
+    header.fileSize = sizeof(BMPHeader) + newRowSize * height;
 
     os.write(reinterpret_cast<char*>(&header), sizeof(BMPHeader));
 
     // Рассчет размера строки с учетом паддинга
-    int rowSize = ((width * header.bitsPerPixel + 31) / 32) * 4;
+    int newRowSize = ((width * header.bitsPerPixel + 31) / 32) * 4;
     // Рассчет количества паддинга
-    int padding = rowSize - ((width * header.bitsPerPixel) / 8);
+    int padding = newRowSize - ((width * header.bitsPerPixel) / 8);
 
     // Создание буфера для заполнения пробела между заголовком и данными изображения
     std::vector<uint8_t> gapData(header.dataOffset - sizeof(BMPHeader), 0);
     os.write(reinterpret_cast<char*>(gapData.data()), gapData.size());
 
-    os.write(reinterpret_cast<char*>(buffer.data()), buffer.size());
+    os.write(reinterpret_cast<char*>(buffer.data()), newRowSize * height);
     os.close();
 
     return true;
