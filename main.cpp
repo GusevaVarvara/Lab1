@@ -2,7 +2,7 @@
 #include <fstream>
 #include <vector>
 
-// Определение структуры BMPHeader, описывающей заголовок BMP-файла
+// РћРїСЂРµРґРµР»РµРЅРёРµ СЃС‚СЂСѓРєС‚СѓСЂС‹ BMPHeader, РѕРїРёСЃС‹РІР°СЋС‰РµР№ Р·Р°РіРѕР»РѕРІРѕРє BMP-С„Р°Р№Р»Р°
 #pragma pack(push, 1)
 struct BMPHeader
 {
@@ -25,7 +25,7 @@ struct BMPHeader
 };
 #pragma pack(pop)
 
-// Класс ImageProcessor для обработки и сохранения изображения
+// РљР»Р°СЃСЃ ImageProcessor РґР»СЏ РѕР±СЂР°Р±РѕС‚РєРё Рё СЃРѕС…СЂР°РЅРµРЅРёСЏ РёР·РѕР±СЂР°Р¶РµРЅРёСЏ
 class ImageProcessor
 {
 public:
@@ -40,29 +40,29 @@ public:
 
 private:
     BMPHeader header;
-    std::vector<uint8_t> buffer; // Буфер с данными изображения
+    std::vector<uint8_t> buffer; // Р‘СѓС„РµСЂ СЃ РґР°РЅРЅС‹РјРё РёР·РѕР±СЂР°Р¶РµРЅРёСЏ
     int width;
     int height;
     int rowSize;
     int newRowSize;
 
-    // Применение гауссова фильтра к изображению
+     // РџСЂРёРјРµРЅРµРЅРёРµ РіР°СѓСЃСЃРѕРІР° С„РёР»СЊС‚СЂР° Рє РёР·РѕР±СЂР°Р¶РµРЅРёСЋ
     void ApplyGaussianFilter(std::vector<uint8_t>& outputBuffer, const std::vector<uint8_t>& inputBuffer, int width, int height);
-    // Применение гауссового ядра к пикселю изображения
+     // РџСЂРёРјРµРЅРµРЅРёРµ РіР°СѓСЃСЃРѕРІРѕРіРѕ СЏРґСЂР° Рє РїРёРєСЃРµР»СЋ РёР·РѕР±СЂР°Р¶РµРЅРёСЏ
     double ApplyGaussianKernel(const std::vector<uint8_t>& inputBuffer, const double kernel[3][3], int width, int height, int x, int y);
 };
 
 ImageProcessor::ImageProcessor(const std::string& filename)
 {
-    // Конструктор класса ImageProcessor
+    // РљРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ РєР»Р°СЃСЃР° ImageProcessor
 }
 
 ImageProcessor::~ImageProcessor()
 {
-    // Деструктор класса ImageProcessor
+    // Р”РµСЃС‚СЂСѓРєС‚РѕСЂ РєР»Р°СЃСЃР° ImageProcessor
 }
 
-// Метод, загружающий изображение из файла в память
+// РњРµС‚РѕРґ, Р·Р°РіСЂСѓР¶Р°СЋС‰РёР№ РёР·РѕР±СЂР°Р¶РµРЅРёРµ РёР· С„Р°Р№Р»Р° РІ РїР°РјСЏС‚СЊ
 bool ImageProcessor::LoadImage()
 {
     std::ifstream is("Picture.bmp", std::ifstream::binary);
@@ -98,19 +98,19 @@ bool ImageProcessor::LoadImage()
     width = header.width;
     height = header.height;
 
-    rowSize = ((width * header.bitsPerPixel + 31) / 32) * 4; // Рассчет размера строки с учетом паддинга
-    int padding = rowSize - ((width * header.bitsPerPixel) / 8);  // Рассчет количества паддинга
-    int bufferSize = rowSize * height; // Полный размер буфера
+    rowSize = ((width * header.bitsPerPixel + 31) / 32) * 4; // Р Р°СЃСЃС‡РµС‚ СЂР°Р·РјРµСЂР° СЃС‚СЂРѕРєРё СЃ СѓС‡РµС‚РѕРј РїР°РґРґРёРЅРіР°
+    int padding = rowSize - ((width * header.bitsPerPixel) / 8);  // Р Р°СЃСЃС‡РµС‚ РєРѕР»РёС‡РµСЃС‚РІР° РїР°РґРґРёРЅРіР°
+    int bufferSize = rowSize * height; // РџРѕР»РЅС‹Р№ СЂР°Р·РјРµСЂ Р±СѓС„РµСЂР°
 
     buffer.resize(bufferSize);
 
-    is.seekg(header.dataOffset); // Перемещение указателя в файле к данным изображения
+    is.seekg(header.dataOffset); // РџРµСЂРµРјРµС‰РµРЅРёРµ СѓРєР°Р·Р°С‚РµР»СЏ РІ С„Р°Р№Р»Рµ Рє РґР°РЅРЅС‹Рј РёР·РѕР±СЂР°Р¶РµРЅРёСЏ
 
-    // Чтение данных изображения из файла
+   // Р§С‚РµРЅРёРµ РґР°РЅРЅС‹С… РёР·РѕР±СЂР°Р¶РµРЅРёСЏ РёР· С„Р°Р№Р»Р°
     for (int i = 0; i < height; i++)
     {
         is.read(reinterpret_cast<char*>(&buffer[i * rowSize]), rowSize);
-        is.seekg(padding, std::ios::cur); // Пропускаю паддинг
+        is.seekg(padding, std::ios::cur); // РџСЂРѕРїСѓСЃРєР°СЋ РїР°РґРґРёРЅРі
     }
 
     is.close();
@@ -118,14 +118,14 @@ bool ImageProcessor::LoadImage()
     return true;
 }
 
-// Метод, выполняющий поворот изображения на 90 градусов по часовой стрелке
+// РњРµС‚РѕРґ, РІС‹РїРѕР»РЅСЏСЋС‰РёР№ РїРѕРІРѕСЂРѕС‚ РёР·РѕР±СЂР°Р¶РµРЅРёСЏ РЅР° 90 РіСЂР°РґСѓСЃРѕРІ РїРѕ С‡Р°СЃРѕРІРѕР№ СЃС‚СЂРµР»РєРµ
 bool ImageProcessor::Rotate1()
 {
     int newWidth = height;
     int newHeight = width;
     std::vector<uint8_t> rotatedBuffer(buffer.size());
 
-    int newRowSize = ((newWidth * header.bitsPerPixel + 31) / 32) * 4; // Новый размер строки с учетом паддинга
+    int newRowSize = ((newWidth * header.bitsPerPixel + 31) / 32) * 4; // РќРѕРІС‹Р№ СЂР°Р·РјРµСЂ СЃС‚СЂРѕРєРё СЃ СѓС‡РµС‚РѕРј РїР°РґРґРёРЅРіР°
 
     for (int y = 0; y < newHeight; ++y)
     {
@@ -143,7 +143,7 @@ bool ImageProcessor::Rotate1()
     width = newWidth;
     height = newHeight;
 
-    // Обновление размера строки и паддинга в заголовке BMP
+    // РћР±РЅРѕРІР»РµРЅРёРµ СЂР°Р·РјРµСЂР° СЃС‚СЂРѕРєРё Рё РїР°РґРґРёРЅРіР° РІ Р·Р°РіРѕР»РѕРІРєРµ BMP
     header.width = width;
     header.height = height;
     header.fileSize = sizeof(BMPHeader) + buffer.size();
@@ -151,7 +151,7 @@ bool ImageProcessor::Rotate1()
     return true;
 }
 
-// Метод, выполняющтй поворот изображения на 90 градусов против часовой стрелки
+// РњРµС‚РѕРґ, РІС‹РїРѕР»РЅСЏСЋС‰С‚Р№ РїРѕРІРѕСЂРѕС‚ РёР·РѕР±СЂР°Р¶РµРЅРёСЏ РЅР° 90 РіСЂР°РґСѓСЃРѕРІ РїСЂРѕС‚РёРІ С‡Р°СЃРѕРІРѕР№ СЃС‚СЂРµР»РєРё
 bool ImageProcessor::Rotate2()
 {
     int newWidth = height;
@@ -182,17 +182,17 @@ bool ImageProcessor::Rotate2()
     return true;
 }
 
-// Вычисление суммы произведений значений пикселей изображения и элементов гауссова ядра для конкретного пикселя
+// Р’С‹С‡РёСЃР»РµРЅРёРµ СЃСѓРјРјС‹ РїСЂРѕРёР·РІРµРґРµРЅРёР№ Р·РЅР°С‡РµРЅРёР№ РїРёРєСЃРµР»РµР№ РёР·РѕР±СЂР°Р¶РµРЅРёСЏ Рё СЌР»РµРјРµРЅС‚РѕРІ РіР°СѓСЃСЃРѕРІР° СЏРґСЂР° РґР»СЏ РєРѕРЅРєСЂРµС‚РЅРѕРіРѕ РїРёРєСЃРµР»СЏ
 double ImageProcessor::ApplyGaussianKernel(const std::vector<uint8_t>& inputBuffer, const double kernel[3][3], int width, int height, int x, int y)
 {
     double sum = 0.0;
 
-    // Проход по 3x3 матрице (гауссовому ядру)
+   // РџСЂРѕС…РѕРґ РїРѕ 3x3 РјР°С‚СЂРёС†Рµ (РіР°СѓСЃСЃРѕРІРѕРјСѓ СЏРґСЂСѓ)
     for (int j = -1; j <= 1; ++j)
     {
         for (int i = -1; i <= 1; ++i)
         {
-            // Применение гауссового фильтра к пикселям изображения
+            // РџСЂРёРјРµРЅРµРЅРёРµ РіР°СѓСЃСЃРѕРІРѕРіРѕ С„РёР»СЊС‚СЂР° Рє РїРёРєСЃРµР»СЏРј РёР·РѕР±СЂР°Р¶РµРЅРёСЏ
             sum += static_cast<double>(inputBuffer[(y + j) * width + (x + i)]) * kernel[j + 1][i + 1];
         }
     }
@@ -200,7 +200,7 @@ double ImageProcessor::ApplyGaussianKernel(const std::vector<uint8_t>& inputBuff
     return sum;
 }
 
-// Применение ядра ко всему изображению, за исключением его краев
+// РџСЂРёРјРµРЅРµРЅРёРµ СЏРґСЂР° РєРѕ РІСЃРµРјСѓ РёР·РѕР±СЂР°Р¶РµРЅРёСЋ, Р·Р° РёСЃРєР»СЋС‡РµРЅРёРµРј РµРіРѕ РєСЂР°РµРІ
 void ImageProcessor::ApplyGaussianFilter(std::vector<uint8_t>& outputBuffer, const std::vector<uint8_t>& inputBuffer, int width, int height)
 {
     double kernel[3][3] = {
@@ -209,30 +209,30 @@ void ImageProcessor::ApplyGaussianFilter(std::vector<uint8_t>& outputBuffer, con
         {1.0 / 16, 2.0 / 16, 1.0 / 16}
     };
 
-    // Проход по всем пикселям изображения, исключая края
+    // РџСЂРѕС…РѕРґ РїРѕ РІСЃРµРј РїРёРєСЃРµР»СЏРј РёР·РѕР±СЂР°Р¶РµРЅРёСЏ, РёСЃРєР»СЋС‡Р°СЏ РєСЂР°СЏ
     for (int y = 1; y < height - 1; ++y)
     {
         for (int x = 1; x < width - 1; ++x)
         {
-            // Применение гауссова ядра к пикселю с координатами (x, y)
+            // РџСЂРёРјРµРЅРµРЅРёРµ РіР°СѓСЃСЃРѕРІР° СЏРґСЂР° Рє РїРёРєСЃРµР»СЋ СЃ РєРѕРѕСЂРґРёРЅР°С‚Р°РјРё (x, y)
             double sum = ApplyGaussianKernel(inputBuffer, kernel, width, height, x, y);
-            // Преобразование результата в 8-битное значение и сохранение в выходном буфере
+             // РџСЂРµРѕР±СЂР°Р·РѕРІР°РЅРёРµ СЂРµР·СѓР»СЊС‚Р°С‚Р° РІ 8-Р±РёС‚РЅРѕРµ Р·РЅР°С‡РµРЅРёРµ Рё СЃРѕС…СЂР°РЅРµРЅРёРµ РІ РІС‹С…РѕРґРЅРѕРј Р±СѓС„РµСЂРµ
             outputBuffer[y * width + x] = static_cast<uint8_t>(sum);
         }
     }
 }
 
-// Метод, применяющий гауссов фильтр к изображению
+// РњРµС‚РѕРґ, РїСЂРёРјРµРЅСЏСЋС‰РёР№ РіР°СѓСЃСЃРѕРІ С„РёР»СЊС‚СЂ Рє РёР·РѕР±СЂР°Р¶РµРЅРёСЋ
 bool ImageProcessor::ApplyGaussianFilter()
 {
     std::vector<uint8_t> filteredBuffer(buffer.size());
-    ApplyGaussianFilter(filteredBuffer, buffer, width, height); // Вызов функции для применения гауссова фильтра к изображению
+    ApplyGaussianFilter(filteredBuffer, buffer, width, height);  // Р’С‹Р·РѕРІ С„СѓРЅРєС†РёРё РґР»СЏ РїСЂРёРјРµРЅРµРЅРёСЏ РіР°СѓСЃСЃРѕРІР° С„РёР»СЊС‚СЂР° Рє РёР·РѕР±СЂР°Р¶РµРЅРёСЋ
     buffer = filteredBuffer;
 
     return true;
 }
 
-// Метод, сохраняюший изображение в файл с заданным именем
+// РњРµС‚РѕРґ, СЃРѕС…СЂР°РЅСЏСЋС€РёР№ РёР·РѕР±СЂР°Р¶РµРЅРёРµ РІ С„Р°Р№Р» СЃ Р·Р°РґР°РЅРЅС‹Рј РёРјРµРЅРµРј
 bool ImageProcessor::SaveImage(const std::string& filename)
 {
     std::ofstream os(filename, std::ofstream::binary);
@@ -243,20 +243,12 @@ bool ImageProcessor::SaveImage(const std::string& filename)
         return false;
     }
 
-    header.width = width;
-    header.height = height;
-    header.fileSize = sizeof(BMPHeader) + newRowSize * height;
-
-    os.write(reinterpret_cast<char*>(&header), sizeof(BMPHeader));
-
-    // Рассчет размера строки с учетом паддинга
-    int newRowSize = ((width * header.bitsPerPixel + 31) / 32) * 4;
-    // Рассчет количества паддинга
-    int padding = newRowSize - ((width * header.bitsPerPixel) / 8);
-
-    // Создание буфера для заполнения пробела между заголовком и данными изображения
-    std::vector<uint8_t> gapData(header.dataOffset - sizeof(BMPHeader), 0);
-    os.write(reinterpret_cast<char*>(gapData.data()), gapData.size());
+    BMPHeader updatedHeader = header;
+    updatedHeader.width = width;
+    updatedHeader.height = height;
+    updatedHeader.fileSize = sizeof(BMPHeader) + newRowSize * height;
+    // РџРµСЂРµРјРµС‰РµРЅРёРµ СѓРєР°Р·Р°С‚РµР»СЏ Рє РЅР°С‡Р°Р»Сѓ РїРёРєСЃРµР»СЊРЅС‹С… РґР°РЅРЅС‹С…
+    os.seekp(updatedHeader.dataOffset);
 
     os.write(reinterpret_cast<char*>(buffer.data()), newRowSize * height);
     os.close();
@@ -270,7 +262,7 @@ int main()
 
     if (image.LoadImage())
     {
-        // Поворот изображения по часовой стрелке и сохранение результата
+         // РџРѕРІРѕСЂРѕС‚ РёР·РѕР±СЂР°Р¶РµРЅРёСЏ РїРѕ С‡Р°СЃРѕРІРѕР№ СЃС‚СЂРµР»РєРµ Рё СЃРѕС…СЂР°РЅРµРЅРёРµ СЂРµР·СѓР»СЊС‚Р°С‚Р°
         if (image.Rotate1())
         {
             image.SaveImage("Rotated1.bmp");
@@ -282,7 +274,7 @@ int main()
             return 1;
         }
 
-        // Поворот изображения против часовой стрелки и сохранение результата
+       // РџРѕРІРѕСЂРѕС‚ РёР·РѕР±СЂР°Р¶РµРЅРёСЏ РїСЂРѕС‚РёРІ С‡Р°СЃРѕРІРѕР№ СЃС‚СЂРµР»РєРё Рё СЃРѕС…СЂР°РЅРµРЅРёРµ СЂРµР·СѓР»СЊС‚Р°С‚Р°
         if (image.Rotate2())
         {
             image.SaveImage("Rotated2.bmp");
@@ -294,7 +286,7 @@ int main()
             return 1;
         }
 
-        // Применение гауссова фильтра к изображению и сохранение результата
+        // РџСЂРёРјРµРЅРµРЅРёРµ РіР°СѓСЃСЃРѕРІР° С„РёР»СЊС‚СЂР° Рє РёР·РѕР±СЂР°Р¶РµРЅРёСЋ Рё СЃРѕС…СЂР°РЅРµРЅРёРµ СЂРµР·СѓР»СЊС‚Р°С‚Р°
         if (image.ApplyGaussianFilter())
         {
             image.SaveImage("FilteredImage.bmp");
