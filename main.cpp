@@ -199,7 +199,6 @@ bool ImageProcessor::Rotate2()
     return true;
 }
 
-// Вычисление суммы произведений значений пикселей изображения и элементов гауссова ядра для конкретного пикселя
 double ImageProcessor::ApplyGaussianKernel(const std::vector<uint8_t>& inputBuffer, const double kernel[3][3], int width, int height, int x, int y)
 {
     double sum = 0.0;
@@ -209,15 +208,21 @@ double ImageProcessor::ApplyGaussianKernel(const std::vector<uint8_t>& inputBuff
     {
         for (int i = -1; i <= 1; ++i)
         {
-            // Применение гауссового фильтра к пикселям изображения
-            sum += static_cast<double>(inputBuffer[(y + j) * width + (x + i)]) * kernel[j + 1][i + 1];
+            int pixelX = x + i;
+            int pixelY = y + j;
+
+            // Проверка на края изображения и учет паддинга
+            if (pixelX >= 0 && pixelX < width && pixelY >= 0 && pixelY < height)
+            {
+                // Применение гауссового фильтра к пикселю изображения
+                sum += static_cast<double>(inputBuffer[pixelY * width + pixelX]) * kernel[j + 1][i + 1];
+            }
         }
     }
 
     return sum;
 }
 
-// Применение ядра ко всему изображению, за исключением его краев
 void ImageProcessor::ApplyGaussianFilter(std::vector<uint8_t>& outputBuffer, const std::vector<uint8_t>& inputBuffer, int width, int height)
 {
     double kernel[3][3] = {
@@ -226,10 +231,10 @@ void ImageProcessor::ApplyGaussianFilter(std::vector<uint8_t>& outputBuffer, con
         {1.0 / 16, 2.0 / 16, 1.0 / 16}
     };
 
-    // Проход по всем пикселям изображения, исключая края
-    for (int y = 1; y < height - 1; ++y)
+    // Проход по всем пикселям изображения
+    for (int y = 0; y < height; ++y)
     {
-        for (int x = 1; x < width - 1; ++x)
+        for (int x = 0; x < width; ++x)
         {
             // Применение гауссова ядра к пикселю с координатами (x, y)
             double sum = ApplyGaussianKernel(inputBuffer, kernel, width, height, x, y);
@@ -239,7 +244,6 @@ void ImageProcessor::ApplyGaussianFilter(std::vector<uint8_t>& outputBuffer, con
     }
 }
 
-// Метод, применяющий гауссов фильтр к изображению
 bool ImageProcessor::ApplyGaussianFilter()
 {
     std::vector<uint8_t> filteredBuffer(buffer.size());
@@ -248,6 +252,7 @@ bool ImageProcessor::ApplyGaussianFilter()
 
     return true;
 }
+
 
 // Метод, сохраняюший изображение в файл с заданным именем
 bool ImageProcessor::SaveImage(const std::string& filename)
