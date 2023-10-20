@@ -118,17 +118,6 @@ bool ImageProcessor::LoadImage()
 
     std::cout << "Allocated memory size for image loading: " << header.fileSize << " bytes" << std::endl;
 
-
-    for (int y = 0; y < header.height; y++) 
-    {
-        for (int x = 0; x < header.width; x++)
-        {
-            uint8_t pixelValue = buffer[y * rowSize + x];
-            std::cout << static_cast<int>(pixelValue) << " ";
-        }
-        std::cout << std::endl;
-    }
-
     return true;
 }
 
@@ -138,21 +127,21 @@ bool ImageProcessor::Rotate1()
     int newWidth = height;
     int newHeight = width;
     std::vector<uint8_t> rotatedBuffer(buffer.size());
-    padding = (4 - (newWidth % 4)) & 3;
+    padding = (4 - (newWidth * (header.bitsPerPixel / 8)) % 4) % 4;
     newRowSize = newWidth + padding; // Новый размер строки с учетом паддинга
 
-
-    for (int y = 0; y < newHeight; ++y)
-    {
-        for (int x = 0; x < newWidth; ++x)
-        {
-            int oldX = y;
-            int oldY = newWidth - x - 1;
-            int newIndex = y * newRowSize + x;  
-            int oldIndex = oldY * rowSize + oldX;
-            rotatedBuffer[newIndex] = buffer[oldIndex];
+    for (int y = 0; y < newHeight; ++y) {
+        for (int x = 0; x < newWidth; ++x) {
+            int oldX = newHeight - y - 1;
+            int oldY = x;
+            int newIndex = y * newRowSize + x * (header.bitsPerPixel / 8);
+            int oldIndex = oldY * (width * (header.bitsPerPixel / 8) + padding) + oldX * (header.bitsPerPixel / 8);
+            for (int i = 0; i < header.bitsPerPixel / 8; ++i) {
+                rotatedBuffer[newIndex + i] = buffer[oldIndex + i];
+            }
         }
     }
+
 
     buffer = rotatedBuffer;
     width = newWidth;
@@ -173,18 +162,18 @@ bool ImageProcessor::Rotate2()
     int newWidth = height;
     int newHeight = width;
     std::vector<uint8_t> rotatedBuffer(buffer.size());
-    padding = (4 - (newWidth % 4)) & 3;
+    padding = (4 - (newWidth * (header.bitsPerPixel / 8)) % 4) % 4;
     newRowSize = newWidth + padding;
 
-    for (int y = 0; y < newHeight; ++y)
-    {
-        for (int x = 0; x < newWidth; ++x) 
-        {
-            int oldX = newHeight - y - 1;
-            int oldY = x;
-            int newIndex = y * newRowSize + x;
-            int oldIndex = oldY * newRowSize + oldX;
-            rotatedBuffer[newIndex] = buffer[oldIndex];
+    for (int y = 0; y < newHeight; ++y) {
+        for (int x = 0; x < newWidth; ++x) {
+            int oldX = y;
+            int oldY = newWidth - x - 1;
+            int newIndex = y * newRowSize + x * (header.bitsPerPixel / 8);
+            int oldIndex = oldY * (width * (header.bitsPerPixel / 8) + padding) + oldX * (header.bitsPerPixel / 8);
+            for (int i = 0; i < header.bitsPerPixel / 8; ++i) {
+                rotatedBuffer[newIndex + i] = buffer[oldIndex + i];
+            }
         }
     }
 
@@ -270,7 +259,7 @@ bool ImageProcessor::SaveImage(const std::string& filename)
     updatedHeader.height = height;
     updatedHeader.fileSize = sizeof(BMPHeader) + newRowSize * height;
 
-    os.write(reinterpret_cast<char*>(buffer.data()), sizeof(updatedHeader)); // Заголовок
+    os.write(reinterpret_cast<char*>(&updatedHeader), sizeof(updatedHeader)); // Заголовок
 
     os.write(reinterpret_cast<char*>(ImageData.data()), ImageData.size());  // Данные между заголовком и пикселями
 
@@ -280,14 +269,6 @@ bool ImageProcessor::SaveImage(const std::string& filename)
     os.write(reinterpret_cast<char*>(buffer.data()), newRowSize * height);
 
     os.close();
-
-    for (int y = 0; y < header.height; y++) {
-        for (int x = 0; x < header.width; x++) {
-            uint8_t pixelValue = buffer[y * newRowSize + x];
-            std::cout << static_cast<int>(pixelValue) << " ";
-        }
-        std::cout << std::endl;
-    }
 
     return true;
 }
