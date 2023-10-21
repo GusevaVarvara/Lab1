@@ -96,7 +96,7 @@ bool ImageProcessor::LoadImage()
     width = header.width;
     height = header.height;
 
-    padding = (4 - (width % 4)) & 3; // Рассчет количества паддинга
+   padding = (4 - (width * (header.bitsPerPixel / 8)) % 4) % 4; // Рассчет количества паддинга
     rowSize = width * (header.bitsPerPixel / 8) + padding; // Рассчет полного размера строки
     int bufferSize = rowSize * height; // Полный размер буфера
 
