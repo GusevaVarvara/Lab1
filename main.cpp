@@ -74,7 +74,7 @@ bool ImageProcessor::LoadImage()
     if (!is.is_open())
     {
         std::cerr << "Error opening the file." << std::endl;
-        return 1;
+        return 0;
     }
 
     is.read(reinterpret_cast<char*>(&header), sizeof(BMPHeader));
@@ -83,20 +83,20 @@ bool ImageProcessor::LoadImage()
     {
         std::cerr << "The file is not a BMP image." << std::endl;
         is.close();
-        return 1;
+        return 0;
     }
 
     if (header.bitsPerPixel != 8)
     {
         std::cerr << "The image should have a color depth of 8 bits." << std::endl;
         is.close();
-        return 1;
+        return 0;
     }
 
     width = header.width;
     height = header.height;
 
-   padding = (4 - (width * (header.bitsPerPixel / 8)) % 4) % 4; // Рассчет количества паддинга
+    padding = (4 - (width * (header.bitsPerPixel / 8)) % 4) % 4; // Рассчет количества паддинга
     rowSize = width * (header.bitsPerPixel / 8) + padding; // Рассчет полного размера строки
     int bufferSize = rowSize * height; // Полный размер буфера
 
@@ -130,13 +130,16 @@ bool ImageProcessor::Rotate1()
     padding = (4 - (newWidth * (header.bitsPerPixel / 8)) % 4) % 4;
     newRowSize = newWidth + padding; // Новый размер строки с учетом паддинга
 
-    for (int y = 0; y < newHeight; ++y) {
-        for (int x = 0; x < newWidth; ++x) {
+    for (int y = 0; y < newHeight; ++y)
+    {
+        for (int x = 0; x < newWidth; ++x) 
+        {
             int oldX = newHeight - y - 1;
             int oldY = x;
             int newIndex = y * newRowSize + x * (header.bitsPerPixel / 8);
             int oldIndex = oldY * (width * (header.bitsPerPixel / 8) + padding) + oldX * (header.bitsPerPixel / 8);
-            for (int i = 0; i < header.bitsPerPixel / 8; ++i) {
+            for (int i = 0; i < header.bitsPerPixel / 8; ++i)
+            {
                 rotatedBuffer[newIndex + i] = buffer[oldIndex + i];
             }
         }
@@ -165,13 +168,16 @@ bool ImageProcessor::Rotate2()
     padding = (4 - (newWidth * (header.bitsPerPixel / 8)) % 4) % 4;
     newRowSize = newWidth + padding;
 
-    for (int y = 0; y < newHeight; ++y) {
-        for (int x = 0; x < newWidth; ++x) {
+    for (int y = 0; y < newHeight; ++y)
+    {
+        for (int x = 0; x < newWidth; ++x) 
+        {
             int oldX = y;
             int oldY = newWidth - x - 1;
             int newIndex = y * newRowSize + x * (header.bitsPerPixel / 8);
             int oldIndex = oldY * (width * (header.bitsPerPixel / 8) + padding) + oldX * (header.bitsPerPixel / 8);
-            for (int i = 0; i < header.bitsPerPixel / 8; ++i) {
+            for (int i = 0; i < header.bitsPerPixel / 8; ++i) 
+            {
                 rotatedBuffer[newIndex + i] = buffer[oldIndex + i];
             }
         }
