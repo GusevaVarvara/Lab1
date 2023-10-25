@@ -2,7 +2,15 @@
 #include <fstream>
 #include <vector>
 
-
+/* Следует разбивать программу на файлы. Во первых, просто ради
+ * организации кода. Во вторых, чтобы была возможность проводить
+ * раздельную компиляцию. Стоит помещать каждый класс\структуру 
+ * в отдельный .h файл, а определения их методов в .cpp. Тогда
+ * при изменении реализации какой-то функции придется перекомпили-
+ * ровать только этот .cpp файл. Если определение было в заголовке,
+ * то придется перекомпилировать все файлы, в которые включен заголо-
+ * вок (в крупном проекте это может сократить время компиляции на
+ * несколько часов) */
 // Определение структуры BMPHeader, описывающей заголовок BMP-файла
 #pragma pack(push, 1)
 struct BMPHeader
@@ -34,7 +42,10 @@ public:
     ~ImageProcessor();
 
     bool LoadImage();
-    bool Rotate1();
+    /* Не 1 и 2, а лево и право. Мне вот лево больше
+     * нравится, так что для меня это 1, а у других людей
+     * иначе... */
+    bool Rotate1(); 
     bool Rotate2();
     bool ApplyGaussianFilter();
     bool SaveImage(const std::string& filename);
@@ -45,6 +56,8 @@ private:
     std::vector<uint8_t> ImageData; 
     int width;
     int height;
+    /* Ты используешь rowSize только при чтении, а потом только
+    * newRowSize. Эти переменные можно объединить, они не пересекаются */
     int rowSize;
     int newRowSize;
     int padding;
@@ -55,7 +68,10 @@ private:
     double ApplyGaussianKernel(const std::vector<uint8_t>& inputBuffer, const double kernel[3][3], int width, int height, int x, int y);
 };
 
-
+/* А почему бы тут не вызывать LoadImage(), только тогда
+ * в него стоит добавить аргумент названия картинки, которую
+ * будет открывать ifstream. (но вызов метода в конструкторе
+ * допустим только если он не виртуален!) */
 ImageProcessor::ImageProcessor(const std::string& filename)
 {
     // Конструктор класса ImageProcessor
@@ -73,6 +89,11 @@ bool ImageProcessor::LoadImage()
 
     if (!is.is_open())
     {
+        /* Вместо endl лучше стараться использовать '\n',
+        * потому что endl не просто выводит перевод строки,
+        * он еще и заставляет буфер вывода очиститься, что
+        * вообще-то больше действий. В цикле, например, 
+        * может сильно замедлиться */
         std::cerr << "Error opening the file." << std::endl;
         return 0;
     }
@@ -107,7 +128,10 @@ bool ImageProcessor::LoadImage()
     is.read(reinterpret_cast<char*>(ImageData.data()), dataBetween);
 
     is.seekg(header.dataOffset); // Перемещение указателя в файле к данным изображения
-
+    /* Есть подозрение, что оно не работает в связи с тем, что читаешь ты
+     * вместе с паддингом. Его стоит не читать, а затем добавлять при записи.
+     * просто при повоте в итоге паддинг окажется на той стороне, на которой его
+     * быть не должно. То есть его либо нужно удалять (либо не читать, что проще)*/
     // Чтение данных изображения из файла
     for (int i = 0; i < height; i++)
     {
@@ -153,6 +177,7 @@ bool ImageProcessor::Rotate1()
     // Обновление размера строки и паддинга в заголовке BMP
     header.width = width;
     header.height = height;
+    /* Не совсем правда, еще промежуток между ними */
     header.fileSize = sizeof(BMPHeader) + buffer.size();
 
     return true;
@@ -193,7 +218,12 @@ bool ImageProcessor::Rotate2()
 
     return true;
 }
-
+/* Тут пара проблем: слишком много аргументов вышло. В таких случаях стоит объединить
+ * часть из них какой-то структурой (нужно стараться, чтобы у функций было не более 
+ * 5 параметров). Вторая с тем, что параметр массива на самом деле не имеет размер 
+ * 3х3, туда можно передать массив произвольного размера. Чтобы такого не было, 
+ * нужно передавать ссылку на массив. Но ты правильно сделала этот метод приватным,
+ * так что пользователь с такой проблемой не встретится, только ты сама.  */
 double ImageProcessor::ApplyGaussianKernel(const std::vector<uint8_t>& inputBuffer, const double kernel[3][3], int width, int height, int x, int y)
 {
     double sum = 0.0;
@@ -263,12 +293,14 @@ bool ImageProcessor::SaveImage(const std::string& filename)
     BMPHeader updatedHeader = header;
     updatedHeader.width = width;
     updatedHeader.height = height;
+    /* Тут тоже imageData забыла добавить. */
     updatedHeader.fileSize = sizeof(BMPHeader) + newRowSize * height;
 
     os.write(reinterpret_cast<char*>(&updatedHeader), sizeof(updatedHeader)); // Заголовок
 
     os.write(reinterpret_cast<char*>(ImageData.data()), ImageData.size());  // Данные между заголовком и пикселями
-
+    /* Теперь это перемещение не нужно, потому что ты и так пишешь всё между пикселями
+     * и заголовком */
     // Перемещение указателя к началу пиксельных данных
     os.seekp(updatedHeader.dataOffset);
 
@@ -285,7 +317,7 @@ int main()
     ImageProcessor image("Picture.bmp");
 
     if (image.LoadImage())
-    {
+    {   
         // Поворот изображения по часовой стрелке и сохранение результата
         if (image.Rotate1())
         {
