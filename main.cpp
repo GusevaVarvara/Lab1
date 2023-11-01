@@ -263,7 +263,7 @@ bool ImageProcessor::SaveImage(const std::string& filename)
 
 int main()
 {
-    const std::string imageFilename = "Picture.bmp"; // Замените на имя вашего файла
+    const std::string imageFilename = "Picture.bmp"; 
 
     ImageProcessor image(imageFilename);
     
