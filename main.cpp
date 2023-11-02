@@ -39,12 +39,13 @@ public:
     bool SaveImage(const std::string& filename);
 private:
     BMPHeader header;
+    std::vector<uint8_t> bufferFirst;
     std::vector<uint8_t> buffer; // Буфер с данными изображения
     std::vector<uint8_t> DataBetween;
-    std::vector<uint8_t> WithoutPadding;
     int width;
     int height;
-    int padding;
+    int widthFirst;
+    int heightFirst;
     // Применение гауссова фильтра к изображению
     void ApplyGaussianFilter(std::vector<uint8_t>& outputBuffer, const std::vector<uint8_t>& inputBuffer, int width, int height);
     // Применение гауссового ядра к пикселю изображения
@@ -88,24 +89,18 @@ bool ImageProcessor::LoadImage(const std::string& filename)
         is.close();
         return 0;
     }
-    width = header.width;
-    height = header.height;
-    padding = (4 - (width * (header.bitsPerPixel / 8)) % 4) % 4; // Рассчет количества паддинга
-    int bufferSize = width * height; // Полный размер буфера
-    buffer.resize(bufferSize);
+    widthFirst = header.width;
+    heightFirst = header.height;
+    int bufferSize = widthFirst * heightFirst; // Полный размер буфера
+    bufferFirst.resize(bufferSize);
     int dataBetween = header.dataOffset - sizeof(BMPHeader); // Размер данных между заголовком и пиксельными данными
     DataBetween.resize(dataBetween);
     is.read(reinterpret_cast<char*>(DataBetween.data()), dataBetween);
      
     // Чтение данных изображения из файла
-    for (int i = 0; i < height; i++)
+    for (int i = 0; i < heightFirst; i++)
     {
-        is.read(reinterpret_cast<char*>(&buffer[i * width]), width); // Чтение только пиксельных данных
-
-        // Пропуск паддинга в файле
-        if (padding > 0) {
-            is.seekg(padding, std::ios::cur);  // Сдвиг указателя вперед на количество байтов padding
-        }
+        is.read(reinterpret_cast<char*>(&bufferFirst[i * widthFirst]), widthFirst); // Чтение только пиксельных данных
 
     }
 
@@ -117,9 +112,8 @@ bool ImageProcessor::LoadImage(const std::string& filename)
 // Метод, выполняющий поворот изображения на 90 градусов по часовой стрелке
 bool ImageProcessor::RotateRight()
 {
-    int newWidth = height;
-    int newHeight = width;
-    int newPadding = (4 - newWidth % 4) % 4;
+    int newWidth = heightFirst;
+    int newHeight = widthFirst;
     std::vector<uint8_t> rotatedBuffer(newWidth * newHeight);
     
     for (int y = 0; y < newHeight; ++y)
@@ -132,16 +126,9 @@ bool ImageProcessor::RotateRight()
             int oldIndex = oldY * newHeight + oldX;
             for (int i = 0; i < header.bitsPerPixel / 8; ++i)
             {
-                rotatedBuffer[newIndex + i] = buffer[oldIndex + i];
+                rotatedBuffer[newIndex + i] = bufferFirst[oldIndex + i];
             }
         }
-    }
-
-    WithoutPadding.assign(rotatedBuffer.begin(), rotatedBuffer.end());
-  
-    for (int y = 0; y < newHeight; ++y)
-    {
-        rotatedBuffer.insert(rotatedBuffer.end(), newPadding, 0);
     }
 
     buffer = rotatedBuffer;
@@ -157,9 +144,8 @@ bool ImageProcessor::RotateRight()
 // Метод, выполняющтй поворот изображения на 90 градусов против часовой стрелки
 bool ImageProcessor::RotateLeft()
 {
-    int newWidth = height;
-    int newHeight = width;
-    int newPadding = (4 - newWidth % 4) % 4;
+    int newWidth = heightFirst;
+    int newHeight = widthFirst;
     std::vector<uint8_t> rotatedBuffer(newWidth* newHeight);
 
     for (int y = 0; y < newHeight; ++y)
@@ -172,15 +158,9 @@ bool ImageProcessor::RotateLeft()
             int oldIndex = oldY * newHeight + oldX ;
             for (int i = 0; i < header.bitsPerPixel / 8; ++i)
             {
-                rotatedBuffer[newIndex + i] = WithoutPadding[oldIndex + i];
+                rotatedBuffer[newIndex + i] = bufferFirst[oldIndex + i];
             }
         }
-    }
-
-    // Добавдение паддинга
-    for (int y = 0; y < newHeight; ++y)
-    {
-        rotatedBuffer.insert(rotatedBuffer.end(), newPadding, 0);
     }
 
     buffer = rotatedBuffer;
@@ -304,5 +284,6 @@ int main()
         return 1;
     }
     
+
     return 0;
 }
